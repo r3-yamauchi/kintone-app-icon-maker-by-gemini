@@ -1,0 +1,5 @@
+{
+  "name": "kintone アプリアイコンMaker",
+  "description": "このアプリは自然文により与えられたテーマに沿って Gemini 2.5 Flash Image を使用して kintone用のアプリアイコンを生成します。",
+  "requestFramePermissions": []
+}
