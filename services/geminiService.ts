@@ -1,5 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
-import { PROMPT_EXPANSION_MODEL, IMAGE_GENERATION_MODEL, PROMPT_EXPANSION_SYSTEM_INSTRUCTION, IMAGE_GENERATION_STYLES, MAX_RETRIES } from '../constants';
+import { IMAGE_GENERATION_MODEL, IMAGE_GENERATION_STYLES, MAX_RETRIES } from '../constants';
 import type { Status } from '../types';
 import { StatusType } from '../types';
 
@@ -19,23 +19,10 @@ export const generateIcons = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // Step 1: Prompt Expansion
-      setStatus({ text: 'プロンプトを拡張中...', type: StatusType.Info });
-      
-      const expansionResponse = await ai.models.generateContent({
-        model: PROMPT_EXPANSION_MODEL,
-        contents: prompt,
-        config: {
-          systemInstruction: PROMPT_EXPANSION_SYSTEM_INSTRUCTION,
-        },
-      });
-      const expandedPrompt = expansionResponse.text;
-      
-      // Step 2: Image Generation for 4 styles
       setStatus({ text: '4つのバリエーションを生成中...', type: StatusType.Info });
 
       const imageGenerationPromises = IMAGE_GENERATION_STYLES.map(style => {
-        const finalImagePrompt = `${expandedPrompt}, ${style}`;
+        const finalImagePrompt = `App icon of "${prompt}". Simple, iconic, clean design, bold outlines, plain background. ${style}. No text.`;
         return ai.models.generateContent({
           model: IMAGE_GENERATION_MODEL,
           contents: {
