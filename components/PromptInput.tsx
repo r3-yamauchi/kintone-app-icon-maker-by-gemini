@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Spinner } from './Spinner';
 
@@ -26,7 +25,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ prompt, setPrompt, onSubmit, 
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
           maxLength={200}
-          placeholder="Describe your icon..."
+          placeholder="作成したいアイコンの説明を入力..."
           disabled={isLoading}
           className="w-full bg-white/20 text-white placeholder-indigo-200/80 rounded-lg py-3 pr-4 pl-10 focus:ring-2 focus:ring-purple-400 focus:outline-none transition duration-300 resize-none h-24 text-base sm:text-lg"
           style={{fontSize: '16px'}} // for iOS zoom prevention
@@ -48,7 +47,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ prompt, setPrompt, onSubmit, 
         ) : (
           <>
             <i className="fa-solid fa-sparkles"></i>
-            Generate Magic
+            アイコンを生成
           </>
         )}
       </button>

@@ -1,8 +1,7 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import type { Status, GeneratedImage } from './types';
 import { StatusType } from './types';
-import { generateIcon } from './services/geminiService';
+import { generateIcons } from './services/geminiService';
 import { resizeImageAndGetBlob, downloadBlob } from './services/imageUtils';
 import { ICON_DOWNLOAD_SIZE } from './constants';
 import Header from './components/Header';
@@ -18,7 +17,7 @@ const App: React.FC = () => {
     text: 'アイコンの説明を入力して、魔法を始めましょう！',
     type: StatusType.Initial,
   });
-  const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[] | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -37,13 +36,13 @@ const App: React.FC = () => {
     }
 
     setIsLoading(true);
-    setGeneratedImage(null);
+    setGeneratedImages(null);
     setStatus({ text: '準備中...', type: StatusType.Info });
 
     try {
-      const base64Image = await generateIcon(prompt, setStatus);
-      setGeneratedImage({ base64: base64Image });
-      setStatus({ text: 'アイコンの生成が完了しました！', type: StatusType.Success });
+      const base64Images = await generateIcons(prompt, setStatus);
+      setGeneratedImages(base64Images.map(base64 => ({ base64 })));
+      setStatus({ text: '4つのアイコンの生成が完了しました！', type: StatusType.Success });
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -53,27 +52,27 @@ const App: React.FC = () => {
     }
   }, [prompt]);
 
-  const handleDownload = useCallback(async () => {
-    if (!generatedImage) {
+  const handleDownload = useCallback(async (index: number) => {
+    if (!generatedImages || !generatedImages[index]) {
       setStatus({ text: 'ダウンロードする画像がありません', type: StatusType.Error });
       return;
     }
 
-    setStatus({ text: 'ダウンロード用に画像を準備中...', type: StatusType.Info });
+    setStatus({ text: `アイコン ${index + 1} を準備中...`, type: StatusType.Info });
     try {
-      const blob = await resizeImageAndGetBlob(generatedImage.base64, ICON_DOWNLOAD_SIZE);
+      const blob = await resizeImageAndGetBlob(generatedImages[index].base64, ICON_DOWNLOAD_SIZE);
       const timestamp = new Date().getTime();
-      downloadBlob(blob, `kintone-icon-${timestamp}.png`);
+      downloadBlob(blob, `kintone-icon-${timestamp}-${index + 1}.png`);
       setStatus({ text: 'ダウンロードを開始しました。', type: StatusType.Success });
     } catch (error) {
       console.error(error);
       setStatus({ text: 'ダウンロードに失敗しました。', type: StatusType.Error });
     }
-  }, [generatedImage]);
+  }, [generatedImages]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <main className={`w-full max-w-xl md:max-w-2xl mx-auto bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 text-white transition-all duration-700 ease-out ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <main className={`w-full max-w-xl md:max-w-3xl mx-auto bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 text-white transition-all duration-700 ease-out ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <Header />
         <PromptInput
           prompt={prompt}
@@ -83,7 +82,7 @@ const App: React.FC = () => {
         />
         <StatusDisplay status={status} />
         <ResultDisplay
-          image={generatedImage}
+          images={generatedImages}
           onDownload={handleDownload}
           isLoading={isLoading}
         />

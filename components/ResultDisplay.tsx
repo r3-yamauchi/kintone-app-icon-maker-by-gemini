@@ -1,55 +1,64 @@
-
 import React, { useRef, useEffect } from 'react';
 import type { GeneratedImage } from '../types';
 import { ICON_DISPLAY_SIZE } from '../constants';
 
 interface ResultDisplayProps {
-  image: GeneratedImage | null;
-  onDownload: () => void;
+  images: GeneratedImage[] | null;
+  onDownload: (index: number) => void;
   isLoading: boolean;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ image, onDownload, isLoading }) => {
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ images, onDownload, isLoading }) => {
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (image && resultRef.current) {
+    if (images && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [image]);
+  }, [images]);
 
-  if (!image && !isLoading) return null;
+  if (!images && !isLoading) return null;
+
+  const SkeletonLoader: React.FC = () => (
+    <div className="w-full bg-white/20 p-2 sm:p-3 rounded-xl shadow-lg animate-pulse">
+      <div
+        className="w-full bg-white/30 rounded-lg"
+        style={{ height: ICON_DISPLAY_SIZE }}
+      ></div>
+      <div className="mt-2 h-8 w-3/4 bg-white/30 rounded-md mx-auto"></div>
+    </div>
+  );
 
   return (
-    <div
-      ref={resultRef}
-      className={`mt-8 transition-opacity duration-700 ease-in-out ${image ? 'opacity-100' : 'opacity-0'}`}
-    >
-      {image && (
+    <div ref={resultRef} className="mt-8">
+      {isLoading && !images ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <SkeletonLoader key={i} />)}
+        </div>
+      ) : images ? (
         <div className="bg-white/90 p-4 rounded-xl shadow-2xl animate-[fadeInUp_0.5s_ease-out]">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <img
-              src={`data:image/png;base64,${image.base64}`}
-              alt="Generated kintone icon"
-              className="rounded-lg shadow-md"
-              style={{ width: ICON_DISPLAY_SIZE, height: ICON_DISPLAY_SIZE }}
-            />
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-lg font-bold text-gray-800">Your Icon is Ready!</h3>
-              <p className="text-gray-600 text-sm mt-1">
-                You can now download your generated icon.
-              </p>
-              <button
-                onClick={onDownload}
-                className="mt-3 w-full sm:w-auto flex items-center justify-center gap-x-2 text-white bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-lg px-5 py-2.5 font-semibold transform-gpu hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-green-500/40"
-              >
-                <i className="fa-solid fa-download"></i>
-                ダウンロード
-              </button>
-            </div>
+           <h3 className="text-xl font-bold text-gray-800 text-center mb-4">アイコンが完成しました！</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+              <div key={index} className="flex flex-col items-center text-center">
+                <img
+                  src={`data:image/png;base64,${image.base64}`}
+                  alt={`Generated kintone icon ${index + 1}`}
+                  className="rounded-lg shadow-md mb-2"
+                  style={{ width: ICON_DISPLAY_SIZE, height: ICON_DISPLAY_SIZE }}
+                />
+                <button
+                  onClick={() => onDownload(index)}
+                  className="w-full flex items-center justify-center gap-x-2 text-white bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-lg px-3 py-2 text-sm font-semibold transform-gpu hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-green-500/40"
+                >
+                  <i className="fa-solid fa-download"></i>
+                  <span>ダウンロード</span>
+                </button>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
